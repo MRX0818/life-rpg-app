@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Жизнь как игра</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Жизнь-игра">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#E8ECF6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141733" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#E8ECF6;--surface:#FFFFFF;--surface-2:#F0F2FA;--track:#DCE1F0;
+  --ink:#1B2140;--ink-2:#555D84;--edge:#1B2140;
+  --primary:#5B3FE0;--on-primary:#FFFFFF;
+  --danger:#D6303A;--on-danger:#FFFFFF;--boss:#E5484D;--focus:#FF6B00;
+  --c-biz:#F5A800;--c-content:#EE4A86;--c-body:#2EBD78;--c-mind:#4F83F5;
+  --on-color:#14173A;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#141733;--surface:#202552;--surface-2:#2B3169;--track:#161938;
+    --ink:#F1F2FF;--ink-2:#AEB3E0;--edge:#080A1D;
+    --primary:#9A8CFF;--on-primary:#0E1030;
+    --danger:#FF6B72;--on-danger:#220A0D;--boss:#FF6B72;--focus:#FFD166;
+  }
+}
+
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",Nunito,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  font-size:16px;line-height:1.4;min-height:100vh;min-height:100dvh;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;
+}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0;text-align:left;touch-action:manipulation}
+input,textarea{-webkit-user-select:text;user-select:text}
+ul,ol{list-style:none;padding:0}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.app{max-width:460px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 16px calc(36px + env(safe-area-inset-bottom))}
+
+/* ---------- герой ---------- */
+.hero{background:var(--surface);border:2px solid var(--edge);border-radius:22px;box-shadow:0 4px 0 var(--edge);padding:14px}
+.hero-top{display:flex;gap:14px;align-items:center}
+.shield{position:relative;width:68px;height:76px;flex:none}
+.shield svg{position:absolute;inset:0;width:100%;height:100%}
+.shield .n{position:absolute;inset:0 0 8px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--on-primary);line-height:1}
+.shield b{font-size:30px;font-weight:900;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.shield small{font-size:11px;font-weight:800;opacity:.9;margin-top:1px}
+.hero-info{flex:1;min-width:0}
+.name-btn{display:flex;align-items:center;gap:7px;max-width:100%;font-size:22px;font-weight:800;line-height:1.15;letter-spacing:-.01em;min-height:32px}
+.name-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name-btn svg{width:15px;height:15px;flex:none;color:var(--ink-2)}
+.rank{font-size:14px;font-weight:700;color:var(--ink-2)}
+.xp-line{font-size:13px;font-weight:700;color:var(--ink-2);margin-top:6px;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.stat{background:var(--surface-2);border:2px solid var(--edge);border-radius:12px;padding:8px 6px;text-align:center}
+.stat b{display:block;font-size:18px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums}
+.stat span{display:block;font-size:12px;font-weight:700;color:var(--ink-2)}
+
+/* ---------- полоски ---------- */
+.bar{display:block;position:relative;height:16px;margin-top:8px;border:2px solid var(--edge);border-radius:9px;background:var(--track);overflow:hidden}
+.bar .fill{display:block;height:100%;background:var(--bar,var(--primary));transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.bar.notch::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.28;
+  background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 2px),var(--edge) calc(10% - 2px),var(--edge) 10%)}
+.bar.mini{height:10px;margin-top:6px;border-radius:6px}
+
+/* ---------- вкладки ---------- */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 0 10px;background:var(--bg)}
+.tab{min-height:44px;text-align:center;font-weight:800;font-size:15px;background:var(--surface);border:2px solid var(--edge);border-radius:12px;box-shadow:0 3px 0 var(--edge);transition:transform .08s,box-shadow .08s}
+.tab[aria-selected="true"]{background:var(--primary);color:var(--on-primary)}
+.tab:active{transform:translateY(3px);box-shadow:0 0 0 var(--edge)}
+
+/* ---------- общее ---------- */
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:22px 2px 10px}
+.sec-h:first-child{margin-top:8px}
+.sec-h h2{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.sec-h .meta{font-size:14px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.empty{padding:18px;text-align:center;font-weight:700;color:var(--ink-2);border:2px dashed var(--edge);border-radius:14px}
+.notice{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px;padding:10px 12px;font-size:14px;font-weight:700;border:2px solid var(--edge);border-radius:12px;background:var(--surface-2);background:color-mix(in srgb,var(--c-biz) 35%,var(--surface))}
+.notice span{flex:1 1 200px}
+.banner{margin-bottom:10px;padding:12px 14px;font-weight:800;border:2px solid var(--edge);border-radius:14px;background:var(--surface-2);background:color-mix(in srgb,var(--c-body) 35%,var(--surface))}
+.row-actions{display:flex;gap:10px;margin-top:14px}
+.row-actions.center{justify-content:center}
+.add-btn{flex:1;min-height:52px;text-align:center;font-weight:800;border:2px dashed var(--edge);border-radius:14px}
+.add-btn:active{background:var(--surface-2)}
+.row-actions .btn{min-height:52px}
+.dayswitch{display:flex;gap:8px;margin-bottom:12px}
+.dayhint{margin:-2px 2px 10px}
+
+.btn{min-height:44px;padding:0 16px;text-align:center;font-weight:800;color:var(--on-primary);background:var(--primary);border:2px solid var(--edge);border-radius:12px;box-shadow:0 3px 0 var(--edge);transition:transform .08s,box-shadow .08s}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 0 0 var(--edge)}
+.btn:disabled{cursor:not-allowed;color:var(--ink-2);background:var(--surface-2);box-shadow:none;transform:translateY(3px)}
+.btn.ghost{color:var(--ink);background:var(--surface)}
+.btn.danger{color:var(--on-danger);background:var(--danger)}
+.btn.small{min-height:40px;padding:0 12px;font-size:15px}
+
+/* ---------- сферы ---------- */
+.spheres{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sphere{display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface);border:2px solid var(--edge);border-radius:14px;box-shadow:0 3px 0 var(--edge);transition:transform .08s,box-shadow .08s}
+.sphere:active{transform:translateY(3px);box-shadow:0 0 0 var(--edge)}
+.sphere[aria-pressed="true"]{background:var(--surface-2);background:color-mix(in srgb,var(--c) 28%,var(--surface))}
+.ico{display:grid;place-items:center;width:40px;height:40px;flex:none;font-size:21px;background:var(--c);border:2px solid var(--edge);border-radius:11px}
+.sphere .t{flex:1;min-width:0;display:block}
+.sphere b{display:block;font-size:15px;font-weight:800;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sphere small{display:block;font-size:12px;font-weight:700;color:var(--ink-2)}
+
+/* ---------- квесты ---------- */
+.quests{display:grid;gap:10px}
+.quest{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 12px;background:var(--surface);border:2px solid var(--edge);border-radius:14px;box-shadow:0 3px 0 var(--edge);transition:transform .08s,box-shadow .08s}
+.quest:active{transform:translateY(3px);box-shadow:0 0 0 var(--edge)}
+.quest.editing{border-style:dashed}
+.box{display:grid;place-items:center;width:34px;height:34px;flex:none;background:var(--surface-2);border:2px solid var(--edge);border-radius:10px}
+.box svg{width:20px;height:20px;opacity:0;transform:scale(.4)}
+.quest.done{background:var(--surface-2)}
+.quest.done .box{background:var(--c)}
+.quest.done .box svg{opacity:1;transform:none}
+.quest.pop .box{animation:thump .26s ease-out}
+.quest.pop .box svg{animation:stamp .34s cubic-bezier(.3,1.7,.5,1)}
+@keyframes stamp{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+@keyframes thump{50%{transform:scale(1.18)}}
+.quest.editing .box svg{opacity:1;transform:none}
+.q-body{flex:1;min-width:0;display:block}
+.q-name{display:block;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.quest.done .q-name{text-decoration:line-through;color:var(--ink-2)}
+.q-sphere{display:flex;align-items:center;gap:6px;margin-top:2px;font-size:13px;font-weight:700;color:var(--ink-2)}
+.q-sphere i{width:10px;height:10px;border-radius:50%;background:var(--c);border:2px solid var(--edge)}
+.xp-tag{flex:none;padding:4px 10px;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;background:var(--surface-2);background:color-mix(in srgb,var(--c) 30%,var(--surface));border:2px solid var(--edge);border-radius:999px}
+
+/* ---------- босс и магазин ---------- */
+.boss{padding:18px 16px;text-align:center;background:var(--surface);border:2px solid var(--edge);border-radius:22px;box-shadow:0 4px 0 var(--edge)}
+.boss-face{display:grid;place-items:center;width:104px;height:104px;margin:0 auto 12px;font-size:60px;background:var(--surface-2);background:color-mix(in srgb,var(--boss) 30%,var(--surface));border:2px solid var(--edge);border-radius:28px}
+.boss h2{font-size:24px;font-weight:900;line-height:1.15;letter-spacing:-.01em;overflow-wrap:anywhere}
+.boss .hp{margin-top:10px;font-weight:800;font-variant-numeric:tabular-nums}
+.boss .bar{height:22px;margin-top:8px;--bar:var(--boss)}
+.boss .win{margin-top:8px;font-weight:700}
+.boss .hint{margin-top:10px}
+.hint{font-size:13px;font-weight:600;color:var(--ink-2)}
+.hint.big{font-size:16px;font-weight:600;color:var(--ink)}
+.shop{display:grid;gap:10px}
+.reward{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;background:var(--surface);border:2px solid var(--edge);border-radius:14px;box-shadow:0 3px 0 var(--edge)}
+.r-name{flex:1;min-width:0;display:block}
+.r-name b{display:block;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.r-name small{display:block;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.icon-btn{display:grid;place-items:center;width:44px;height:44px;flex:none;background:var(--surface-2);border:2px solid var(--edge);border-radius:12px}
+.icon-btn svg{width:18px;height:18px}
+.bought{margin-top:10px;display:grid;gap:6px}
+.bought li{display:flex;justify-content:space-between;gap:10px;padding:6px 4px;font-size:14px;font-weight:600;border-bottom:2px solid var(--track)}
+.bought li span:last-child{color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+/* ---------- итоги ---------- */
+.chart{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;height:176px;padding:14px 12px 10px;background:var(--surface);border:2px solid var(--edge);border-radius:18px;box-shadow:0 4px 0 var(--edge)}
+.col{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;min-width:0}
+.col .val{min-height:14px;font-size:11px;font-weight:800;line-height:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.col .stack{display:flex;flex-direction:column-reverse;width:100%;max-width:32px;min-height:4px;overflow:hidden;background:var(--track);border:2px solid var(--edge);border-radius:8px 8px 4px 4px}
+.col .seg{display:block;width:100%}
+.col .d{padding:0 6px;font-size:12px;font-weight:800;line-height:18px;border-radius:6px}
+.col.today .d{background:var(--primary);color:var(--on-primary)}
+.wk{display:grid;gap:12px;margin-top:12px;padding:14px;background:var(--surface);border:2px solid var(--edge);border-radius:18px;box-shadow:0 4px 0 var(--edge)}
+.wk p{font-weight:700}
+.wk p.hint{font-weight:600}
+.wk-row{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center}
+.wk-row .nm{display:block;font-weight:700;line-height:1.1}
+.wk-row b{font-weight:800;font-variant-numeric:tabular-nums}
+.wk-row .bar{margin-top:5px}
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ach{display:flex;gap:10px;align-items:center;padding:10px;background:var(--surface);border:2px solid var(--edge);border-radius:14px}
+.ach .ai{display:grid;place-items:center;width:40px;height:40px;flex:none;font-size:22px;background:var(--surface-2);background:color-mix(in srgb,var(--primary) 25%,var(--surface));border:2px solid var(--edge);border-radius:11px}
+.ach b{display:block;font-size:14px;font-weight:800;line-height:1.15}
+.ach small{display:block;margin-top:2px;font-size:12px;font-weight:600;line-height:1.2;color:var(--ink-2)}
+.ach.locked{opacity:.62}
+.ach.locked .ai{filter:grayscale(1)}
+textarea,input[type="text"],input[type="number"]{width:100%;min-height:48px;padding:10px 12px;background:var(--surface-2);border:2px solid var(--edge);border-radius:12px}
+textarea{min-height:104px;resize:vertical}
+
+/* ---------- ещё ---------- */
+.btn-col{display:grid;gap:10px}
+.btn-col .btn{width:100%}
+.steps{display:grid;gap:8px;padding-left:22px;list-style:decimal;font-weight:600}
+.set-list{display:grid;gap:10px}
+.set-row{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:10px 12px;background:var(--surface);border:2px solid var(--edge);border-radius:14px;box-shadow:0 3px 0 var(--edge);transition:transform .08s,box-shadow .08s}
+.set-row:active{transform:translateY(3px);box-shadow:0 0 0 var(--edge)}
+.set-row .nm{flex:1;min-width:0;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.set-row svg{width:16px;height:16px;flex:none;color:var(--ink-2)}
+.footer{margin-top:26px;text-align:center}
+.footer .btn{margin-bottom:12px}
+
+/* ---------- окна ---------- */
+.scrim{position:fixed;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center;background:rgba(8,10,29,.55)}
+.sheet{width:100%;max-width:460px;max-height:92vh;max-height:92dvh;overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom));background:var(--surface);border:2px solid var(--edge);border-bottom:0;border-radius:22px 22px 0 0;animation:up .22s cubic-bezier(.2,.9,.3,1)}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sheet h3{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.field{display:grid;gap:6px;margin-top:14px}
+.field label,.field .lbl{font-size:14px;font-weight:800;color:var(--ink-2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips.emo .chip{min-width:44px;justify-content:center;font-size:20px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;font-weight:800;background:var(--surface-2);border:2px solid var(--edge);border-radius:999px}
+.chip[aria-pressed="true"]{background:var(--primary);color:var(--on-primary)}
+.chip.sph[aria-pressed="true"]{background:var(--c);color:var(--on-color)}
+.err{min-height:1.3em;margin-top:12px;font-size:14px;font-weight:700;color:var(--danger)}
+.actions{display:flex;gap:10px;margin-top:6px}
+.actions .btn{flex:1}
+
+/* ---------- эффекты ---------- */
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));z-index:30;max-width:min(92vw,420px);padding:12px 16px;font-weight:800;text-align:center;color:var(--bg);background:var(--ink);border:2px solid var(--edge);border-radius:14px;box-shadow:0 4px 0 var(--edge);transform:translateX(-50%);animation:drop .25s cubic-bezier(.2,.9,.3,1)}
+@keyframes drop{from{transform:translate(-50%,-20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+.fx{position:fixed;z-index:25;pointer-events:none;font-size:20px;font-weight:900;white-space:nowrap;color:var(--c);
+  text-shadow:0 2px 0 var(--edge),2px 0 0 var(--edge),-2px 0 0 var(--edge),0 -2px 0 var(--edge)}
+.cf{position:fixed;z-index:40;width:9px;height:13px;pointer-events:none;border:1.5px solid var(--edge);border-radius:2px}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms !important;animation-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+<main class="app" id="app"><p class="empty">Загружаю игру…</p></main>
+<div id="sheet"></div>
+<div id="toast" aria-live="polite" aria-atomic="true"></div>
+<input type="file" id="file-in" accept=".json,application/json,text/plain" hidden>
+
+<script>
+(function () {
+'use strict';
+
+/* ================= данные ================= */
+const KEY = 'life-rpg-v1';
+const SPHERES = [
+  { id: 'biz',     name: 'Бизнес',  icon: '💼', v: '--c-biz' },
+  { id: 'content', name: 'Контент', icon: '🎬', v: '--c-content' },
+  { id: 'body',    name: 'Тело',    icon: '💪', v: '--c-body' },
+  { id: 'mind',    name: 'Ум',      icon: '🧠', v: '--c-mind' }
+];
+const SDEF = {}, S = {};
+SPHERES.forEach(s => { SDEF[s.id] = { name: s.name, icon: s.icon }; S[s.id] = s; });
+const TITLES = ['Новичок', 'Ученик', 'Боец', 'Воин', 'Мастер', 'Герой', 'Легенда'];
+const DAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+const calm = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+const app = document.getElementById('app');
+const sheetEl = document.getElementById('sheet');
+const toastEl = document.getElementById('toast');
+const fileIn = document.getElementById('file-in');
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+const z = n => String(n).padStart(2, '0');
+const ymd = d => d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+const todayStr = () => ymd(new Date());
+const dayOffset = n => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - n); return ymd(d); };
+const dayDiff = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const titleOf = lvl => TITLES[Math.min(lvl - 1, TITLES.length - 1)];
+const fmtDate = iso => { const d = new Date(iso); return isNaN(d) ? '' : z(d.getDate()) + '.' + z(d.getMonth() + 1) + '.' + d.getFullYear(); };
+const daysSince = iso => Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+const isStandalone = () => window.navigator.standalone === true || !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#14173A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/></svg>';
+const CLOSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+/* ================= хранилище ================= */
+// В чате Claude есть window.storage, в браузере и на iPhone работает localStorage.
+// Если нет ни того, ни другого, игра работает в памяти и предупреждает об этом.
+const Store = {
+  mode: 'memory',
+  async load() {
+    if (window.storage) {
+      this.mode = 'claude';
+      try { const r = await window.storage.get(KEY); return r && r.value ? r.value : null; } catch (e) { return null; }
+    }
+    try { const v = window.localStorage.getItem(KEY); this.mode = 'local'; return v; } catch (e) { this.mode = 'memory'; return null; }
+  },
+  async save(text) {
+    if (this.mode === 'claude') { const r = await window.storage.set(KEY, text); return !!r; }
+    if (this.mode === 'local') { window.localStorage.setItem(KEY, text); return true; }
+    return false;
+  }
+};
+
+function fresh() {
+  const q = (sphere, name, xp) => ({ id: uid(), sphere, name, xp });
+  return {
+    v: 2,
+    name: 'Герой',
+    spheres: {},
+    quests: [
+      q('biz', 'Главная задача по работе', 30),
+      q('biz', 'Ответить клиентам и закрыть хвосты', 20),
+      q('content', 'Снять материал для Reels', 30),
+      q('content', 'Выложить пост или сторис', 20),
+      q('body', 'Тренировка или прогулка 30 минут', 20),
+      q('mind', '20 страниц книги', 10),
+      q('mind', 'Один урок или новый навык', 20)
+    ],
+    log: [],
+    spent: 0,
+    boss: { name: 'Прокрастинация', hp: 2500, reward: '', startXP: 0 },
+    rewards: [
+      { id: uid(), name: 'Любимая еда', cost: 300 },
+      { id: uid(), name: 'Вечер кино без чувства вины', cost: 200 },
+      { id: uid(), name: 'Покупка для себя', cost: 1000 },
+      { id: uid(), name: 'Целый выходной без дел', cost: 1500 }
+    ],
+    bought: [],
+    ach: {},
+    flags: {},
+    lastBackup: null,
+    note: ''
+  };
+}
+
+// Приводит любое сохранение (в том числе от старой версии) к актуальному виду.
+function normalize(o) {
+  const base = fresh();
+  const s = Object.assign(base, o);
+  s.v = 2;
+  if (!Array.isArray(s.quests)) s.quests = base.quests;
+  s.quests = s.quests.filter(q => q && q.id && typeof q.name === 'string' && typeof q.xp === 'number');
+  if (!Array.isArray(s.log)) s.log = [];
+  s.log = s.log.filter(e => e && typeof e.date === 'string' && typeof e.xp === 'number' && e.sphere);
+  if (!Array.isArray(s.rewards)) s.rewards = [];
+  s.rewards = s.rewards.filter(r => r && r.id && typeof r.name === 'string' && typeof r.cost === 'number');
+  if (!Array.isArray(s.bought)) s.bought = [];
+  s.bought = s.bought.filter(b => b && typeof b.name === 'string' && typeof b.date === 'string');
+  s.boss = Object.assign({ name: 'Босс', hp: 2500, reward: '', startXP: 0 }, s.boss && typeof s.boss === 'object' ? s.boss : {});
+  if (!(s.boss.hp > 0)) s.boss.hp = 2500;
+  ['ach', 'flags', 'spheres'].forEach(k => { if (!s[k] || typeof s[k] !== 'object' || Array.isArray(s[k])) s[k] = {}; });
+  if (typeof s.spent !== 'number' || !(s.spent >= 0)) s.spent = 0;
+  if (typeof s.note !== 'string') s.note = '';
+  if (typeof s.name !== 'string' || !s.name) s.name = 'Герой';
+  if (typeof s.lastBackup !== 'string') s.lastBackup = null;
+  return s;
+}
+
+function applySpheres() {
+  SPHERES.forEach(s => {
+    const o = state && state.spheres && state.spheres[s.id];
+    s.name = o && typeof o.name === 'string' && o.name.trim() ? o.name.trim() : SDEF[s.id].name;
+    s.icon = o && typeof o.icon === 'string' && o.icon.trim() ? o.icon.trim() : SDEF[s.id].icon;
+  });
+}
+const sn = s => esc(s.name);
+const si = s => esc(s.icon);
+
+let state = null;
+let saved = null;               // null: пока неизвестно, true/false: результат сохранения
+const ui = { tab: 'quests', filter: null, edit: false, day: 0 };
+const prevBar = {};
+let lastDay = todayStr();
+let justDone = null;            // квест, который только что закрыли: у него играет анимация галочки
+
+/* ================= расчёты ================= */
+const totalXP = () => state.log.reduce((s, e) => s + e.xp, 0);
+const sphereXP = id => state.log.reduce((s, e) => s + (e.sphere === id ? e.xp : 0), 0);
+const coins = () => Math.max(0, totalXP() - state.spent);
+const todayXP = () => { const t = todayStr(); return state.log.reduce((s, e) => s + (e.date === t ? e.xp : 0), 0); };
+const doneOn = date => { const m = new Set(); state.log.forEach(e => { if (e.date === date) m.add(e.questId); }); return m; };
+const curDate = () => dayOffset(ui.day);
+const bossDamage = () => Math.min(state.boss.hp, Math.max(0, totalXP() - (state.boss.startXP || 0)));
+
+function levelInfo(xp, base, inc) {
+  let lvl = 1, need = base, rest = xp;
+  while (rest >= need) { rest -= need; lvl++; need = base + inc * (lvl - 1); }
+  return { lvl, into: rest, need };
+}
+const heroLvl = xp => levelInfo(xp, 400, 100);
+const sphLvl = xp => levelInfo(xp, 150, 50);
+
+function streak() {
+  const days = new Set(state.log.map(e => e.date));
+  const d = new Date(); d.setHours(12, 0, 0, 0);
+  if (!days.has(ymd(d))) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (days.has(ymd(d))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function maxStreak() {
+  const days = Array.from(new Set(state.log.map(e => e.date))).sort();
+  let best = 0, run = 0, prev = null;
+  days.forEach(d => { run = prev && dayDiff(prev, d) === 1 ? run + 1 : 1; if (run > best) best = run; prev = d; });
+  return best;
+}
+
+/* ================= достижения ================= */
+const ACH = [
+  { id: 'first',  icon: '👣', name: 'Первый шаг',     desc: 'Закрой первый квест',          ok: () => state.log.length >= 1 },
+  { id: 's3',     icon: '🔥', name: 'Разгон',         desc: '3 дня подряд',                 ok: () => maxStreak() >= 3 },
+  { id: 's7',     icon: '🚀', name: 'Неделя огня',    desc: '7 дней подряд',                ok: () => maxStreak() >= 7 },
+  { id: 's30',    icon: '🏔️', name: 'Железная воля',  desc: '30 дней подряд',               ok: () => maxStreak() >= 30 },
+  { id: 'clean',  icon: '🏆', name: 'День зачищен',   desc: 'Закрой все квесты за день',    ok: () => !!state.flags.clean },
+  { id: 'c100',   icon: '💯', name: 'Сотня',          desc: 'Закрой 100 квестов',           ok: () => state.log.length >= 100 },
+  { id: 'xp1000', icon: '⚡', name: 'Тысяча',         desc: 'Набери 1000 XP',               ok: () => totalXP() >= 1000 },
+  { id: 'lvl5',   icon: '🛡️', name: 'Пятый уровень',  desc: 'Дорасти до 5 уровня',          ok: () => heroLvl(totalXP()).lvl >= 5 },
+  { id: 'all',    icon: '🌈', name: 'Всесторонний',   desc: 'Набери по 100 XP в каждой сфере', ok: () => SPHERES.every(s => sphereXP(s.id) >= 100) },
+  { id: 'shop',   icon: '🛍️', name: 'Заслужил',       desc: 'Купи первую награду',          ok: () => state.bought.length >= 1 },
+  { id: 'boss',   icon: '💀', name: 'Убийца боссов',  desc: 'Победи босса',                 ok: () => !!state.flags.boss }
+];
+function checkAch(silent) {
+  const got = [];
+  ACH.forEach(a => { if (!state.ach[a.id] && a.ok()) { state.ach[a.id] = todayStr(); got.push(a); } });
+  if (!got.length) return;
+  if (!silent) got.forEach(a => toast(a.icon + ' Достижение: ' + a.name));
+  persist();
+}
+
+/* ================= сохранение ================= */
+let saveTimer = null;
+function persist() { clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 120); }
+async function doSave() {
+  saveTimer = null;
+  let ok = false;
+  try { ok = await Store.save(JSON.stringify(state)); } catch (e) { ok = false; }
+  if (ok !== saved) {
+    const wasFalse = saved === false;
+    saved = ok;
+    if (!ok || wasFalse) render();
+  }
+}
+
+/* ================= отрисовка ================= */
+function bar(key, pct, cls, style) {
+  let from = prevBar[key] == null ? 0 : prevBar[key];
+  if (from > pct) from = 0;
+  return '<span class="bar ' + (cls || '') + '" style="' + (style || '') + '"><i class="fill" data-key="' + key + '" data-to="' + pct + '" style="width:' + from + '%"></i></span>';
+}
+function settleBars() {
+  void app.offsetWidth;
+  app.querySelectorAll('.fill').forEach(el => {
+    const to = Number(el.dataset.to);
+    el.style.width = to + '%';
+    prevBar[el.dataset.key] = to;
+  });
+}
+
+function heroHTML() {
+  const L = heroLvl(totalXP());
+  const pct = Math.round(L.into / L.need * 100);
+  return '<section class="hero" aria-label="Герой">' +
+    '<div class="hero-top">' +
+      '<div class="shield" aria-hidden="true">' +
+        '<svg viewBox="0 0 68 76"><path d="M34 3 L63 13 V38 C63 56 50 68 34 73 C18 68 5 56 5 38 V13 Z" fill="var(--primary)" stroke="var(--edge)" stroke-width="4" stroke-linejoin="round"/></svg>' +
+        '<div class="n"><b>' + L.lvl + '</b><small>ур.</small></div>' +
+      '</div>' +
+      '<div class="hero-info">' +
+        '<button class="name-btn" data-act="hero-name" data-fid="hero-name" aria-label="Изменить имя героя"><span>' + esc(state.name) + '</span>' + PENCIL + '</button>' +
+        '<div class="rank">' + titleOf(L.lvl) + '</div>' +
+        bar('hero', pct, 'notch', '') +
+        '<div class="xp-line">' + L.into + ' из ' + L.need + ' XP до следующего уровня</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="stats">' +
+      '<div class="stat"><b>🔥 ' + streak() + '</b><span>дней подряд</span></div>' +
+      '<div class="stat"><b>🪙 ' + coins() + '</b><span>монеты</span></div>' +
+      '<div class="stat"><b>⚡ ' + todayXP() + '</b><span>XP сегодня</span></div>' +
+    '</div>' +
+  '</section>';
+}
+
+function tabsHTML() {
+  const T = [['quests', 'Квесты'], ['boss', 'Босс'], ['week', 'Итоги'], ['more', 'Ещё']];
+  return '<nav class="tabs" role="tablist" aria-label="Разделы">' + T.map(t =>
+    '<button class="tab" role="tab" aria-selected="' + (ui.tab === t[0]) + '" data-act="tab" data-id="' + t[0] + '" data-fid="tab-' + t[0] + '">' + t[1] + '</button>'
+  ).join('') + '</nav>';
+}
+
+function noticeHTML() {
+  return '<div class="notice" role="status"><span>Сохранение сейчас недоступно. Прогресс пропадёт, когда закроешь игру. Делай копию: Ещё, Сохранить копию.</span></div>';
+}
+function nagHTML() {
+  if (ui.tab !== 'quests' || state.log.length < 15) return '';
+  const d = state.lastBackup ? daysSince(state.lastBackup) : 999;
+  if (d < 14) return '';
+  return '<div class="notice"><span>' + (state.lastBackup ? 'Копию прогресса делал ' + d + ' дн. назад.' : 'Копию прогресса ты ещё не делал.') +
+    ' Сохрани её, чтобы не потерять всё, если телефон очистит данные.</span>' +
+    '<button class="btn small" data-act="tab" data-id="more" data-fid="nag-go">Сделать копию</button></div>';
+}
+
+function sphereHTML(s) {
+  const L = sphLvl(sphereXP(s.id));
+  const pct = Math.round(L.into / L.need * 100);
+  return '<button class="sphere" style="--c:var(' + s.v + ')" aria-pressed="' + (ui.filter === s.id) + '" data-act="filter" data-id="' + s.id + '" data-fid="sph-' + s.id + '">' +
+    '<span class="ico" aria-hidden="true">' + si(s) + '</span>' +
+    '<span class="t"><b>' + sn(s) + '</b><small>ур. ' + L.lvl + '</small>' + bar('s-' + s.id, pct, 'mini', '--bar:var(' + s.v + ')') + '</span>' +
+  '</button>';
+}
+
+function questHTML(q, isDone) {
+  const s = S[q.sphere] || SPHERES[0];
+  const editing = ui.edit;
+  return '<li><button class="quest' + (isDone ? ' done' : '') + (isDone && q.id === justDone ? ' pop' : '') + (editing ? ' editing' : '') + '" style="--c:var(' + s.v + ')" ' +
+    'data-act="' + (editing ? 'edit-quest' : 'toggle') + '" data-id="' + q.id + '" data-fid="q-' + q.id + '"' + (editing ? '' : ' aria-pressed="' + isDone + '"') + '>' +
+    '<span class="box" aria-hidden="true">' + (editing ? PENCIL : CHECK) + '</span>' +
+    '<span class="q-body"><span class="q-name">' + esc(q.name) + '</span><span class="q-sphere"><i></i>' + sn(s) + '</span></span>' +
+    '<span class="xp-tag">+' + q.xp + '</span>' +
+  '</button></li>';
+}
+
+function questsHTML() {
+  const date = curDate();
+  const done = doneOn(date);
+  const list = state.quests.filter(q => !ui.filter || q.sphere === ui.filter);
+  const total = state.quests.length;
+  const doneN = state.quests.filter(q => done.has(q.id)).length;
+  const allDone = total > 0 && doneN === total;
+  let body;
+  if (list.length) body = '<ul class="quests">' + list.map(q => questHTML(q, done.has(q.id))).join('') + '</ul>';
+  else body = '<p class="empty">' + (total ? 'В этой сфере пока нет квестов. Добавь первый.' : 'Квестов нет. Добавь то, что точно сделаешь сегодня.') + '</p>';
+  const dsw = '<div class="dayswitch" role="group" aria-label="День">' +
+    '<button class="chip" data-act="day" data-id="0" data-fid="day-0" aria-pressed="' + (ui.day === 0) + '">Сегодня</button>' +
+    '<button class="chip" data-act="day" data-id="1" data-fid="day-1" aria-pressed="' + (ui.day === 1) + '">Вчера</button></div>';
+  return '<div class="spheres" role="group" aria-label="Сферы жизни">' + SPHERES.map(sphereHTML).join('') + '</div>' +
+    '<div class="sec-h"><h2>' + (ui.day ? 'Квесты за вчера' : 'Квесты на сегодня') + '</h2><span class="meta">' + doneN + ' из ' + total + '</span></div>' +
+    dsw +
+    (ui.day ? '<p class="hint dayhint">Забыл отметить вчера? Закрой здесь то, что сделал: XP и серия засчитаются.</p>' : '') +
+    (allDone ? '<div class="banner">🏆 ' + (ui.day ? 'Вчерашний день зачищен.' : 'День зачищен. Завтра квесты вернутся.') + '</div>' : '') +
+    body +
+    '<div class="row-actions">' +
+      '<button class="add-btn" data-act="add-quest" data-fid="add-quest">+ Новый квест</button>' +
+      '<button class="btn ghost" data-act="toggle-edit" data-fid="toggle-edit" aria-pressed="' + ui.edit + '">' + (ui.edit ? 'Готово' : 'Изменить') + '</button>' +
+    '</div>';
+}
+
+function shopHTML() {
+  const have = coins();
+  let list;
+  if (state.rewards.length) {
+    list = '<ul class="shop">' + state.rewards.map(r => {
+      const short = r.cost - have;
+      return '<li class="reward">' +
+        '<span class="r-name"><b>' + esc(r.name) + '</b>' + (short > 0 ? '<small>Не хватает 🪙 ' + short + '</small>' : '') + '</span>' +
+        '<button class="btn small" data-act="buy" data-id="' + r.id + '" data-fid="buy-' + r.id + '"' + (short > 0 ? ' disabled' : '') + '>Купить за ' + r.cost + ' 🪙</button>' +
+        '<button class="icon-btn" data-act="edit-reward" data-id="' + r.id + '" data-fid="r-' + r.id + '" aria-label="Изменить награду: ' + esc(r.name) + '">' + PENCIL + '</button>' +
+      '</li>';
+    }).join('') + '</ul>';
+  } else {
+    list = '<p class="empty">Наград пока нет. Придумай, чем будешь себя баловать.</p>';
+  }
+  const hist = state.bought.length
+    ? '<div class="sec-h"><h2>Уже получено</h2></div><ul class="bought">' + state.bought.slice(0, 5).map(b =>
+        '<li><span>' + esc(b.name) + '</span><span>' + b.date.slice(8) + '.' + b.date.slice(5, 7) + '</span></li>').join('') + '</ul>'
+    : '';
+  return '<div class="sec-h"><h2>Магазин наград</h2><span class="meta">🪙 ' + have + '</span></div>' + list +
+    '<div class="row-actions"><button class="add-btn" data-act="add-reward" data-fid="add-reward">+ Новая награда</button></div>' + hist;
+}
+
+function bossHTML() {
+  const b = state.boss;
+  const left = b.hp - bossDamage();
+  const dead = left <= 0;
+  const pct = Math.round(left / b.hp * 100);
+  return '<section class="boss" aria-label="Босс">' +
+    '<div class="boss-face" aria-hidden="true">' + (dead ? '💀' : '👹') + '</div>' +
+    '<h2>' + esc(b.name) + '</h2>' +
+    (dead ? '<p class="win">Босс повержен. ' + (b.reward ? 'Твоя награда: ' + esc(b.reward) + '.' : 'Придумай награду и возьми её.') + '</p>' : '') +
+    '<p class="hp">' + left + ' из ' + b.hp + ' HP</p>' +
+    bar('boss', pct, 'notch', '') +
+    (dead ? '' : '<p class="hint">Каждый заработанный XP бьёт босса. Закрывай квесты и добивай его.</p>') +
+    '<div class="row-actions center"><button class="btn ghost" data-act="edit-boss" data-fid="edit-boss">' + (dead ? 'Новый босс' : 'Изменить босса') + '</button></div>' +
+  '</section>' + shopHTML();
+}
+
+function achHTML() {
+  const got = ACH.filter(a => state.ach[a.id]).length;
+  return '<div class="sec-h"><h2>Достижения</h2><span class="meta">' + got + ' из ' + ACH.length + '</span></div><div class="ach-grid">' +
+    ACH.map(a => {
+      const on = !!state.ach[a.id];
+      return '<div class="ach' + (on ? '' : ' locked') + '"><span class="ai" aria-hidden="true">' + (on ? a.icon : '🔒') + '</span>' +
+        '<span><b>' + a.name + '</b><small>' + a.desc + '</small></span></div>';
+    }).join('') + '</div>';
+}
+
+function weekHTML() {
+  const base = new Date(); base.setHours(12, 0, 0, 0);
+  const rows = [], idx = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(base); d.setDate(base.getDate() - i);
+    const r = { d, key: ymd(d), by: {}, sum: 0 };
+    rows.push(r); idx[r.key] = r;
+  }
+  state.log.forEach(e => { const r = idx[e.date]; if (r) { r.by[e.sphere] = (r.by[e.sphere] || 0) + e.xp; r.sum += e.xp; } });
+  const max = Math.max(50, ...rows.map(r => r.sum));
+  const weekXP = rows.reduce((s, r) => s + r.sum, 0);
+  const active = rows.filter(r => r.sum > 0).length;
+  const per = SPHERES.map(s => ({ s, xp: rows.reduce((a, r) => a + (r.by[s.id] || 0), 0) }));
+  const top = per.reduce((a, b) => (b.xp > a.xp ? b : a));
+  const low = per.reduce((a, b) => (b.xp < a.xp ? b : a));
+  const pmax = Math.max(1, top.xp);
+
+  const chart = '<div class="chart" role="img" aria-label="XP по дням за последние 7 дней">' + rows.map((r, i) => {
+    const h = r.sum ? Math.max(10, Math.round(r.sum / max * 100)) : 4;
+    const segs = SPHERES.filter(s => r.by[s.id]).map(s => '<i class="seg" style="flex:' + r.by[s.id] + ' 1 0%;background:var(' + s.v + ')"></i>').join('');
+    return '<div class="col' + (i === 6 ? ' today' : '') + '"><span class="val">' + (r.sum || '') + '</span><span class="stack" style="height:' + h + 'px">' + segs + '</span><span class="d">' + DAYS[r.d.getDay()] + '</span></div>';
+  }).join('') + '</div>';
+
+  const sphRows = per.map(p =>
+    '<div class="wk-row"><span aria-hidden="true">' + si(p.s) + '</span>' +
+    '<div><span class="nm">' + sn(p.s) + '</span>' + bar('wk-' + p.s.id, Math.round(p.xp / pmax * 100), 'mini', '--bar:var(' + p.s.v + ')') + '</div>' +
+    '<b>' + p.xp + '</b></div>').join('');
+
+  const verdict = (weekXP > 0 && top.xp !== low.xp)
+    ? '<p>Сильнее всего: ' + si(top.s) + ' ' + sn(top.s) + '. Просела: ' + si(low.s) + ' ' + sn(low.s) + '.</p>'
+    : (weekXP === 0 ? '<p>Пока пусто. Закрой первый квест, и здесь появятся итоги.</p>' : '');
+
+  return '<div class="sec-h"><h2>Последние 7 дней</h2><span class="meta">' + weekXP + ' XP</span></div>' + chart +
+    '<div class="wk"><p>Дней с квестами: ' + active + ' из 7</p>' + sphRows + verdict + '</div>' +
+    achHTML() +
+    '<div class="sec-h"><h2 id="note-h">Что поменять</h2></div>' +
+    '<textarea id="note" data-fid="note" rows="4" maxlength="600" aria-labelledby="note-h" placeholder="Что сработало, где провал, что упростить на следующей неделе">' + esc(state.note) + '</textarea>';
+}
+
+function moreHTML() {
+  const mode = Store.mode;
+  const working = saved !== false && mode !== 'memory';
+  const where = mode === 'claude' ? 'Прогресс сохраняется внутри Claude. Это отдельное сохранение от версии на телефоне.' : 'Прогресс сохраняется на этом устройстве.';
+  const last = state.lastBackup ? fmtDate(state.lastBackup) : 'ещё не делал';
+  const install = isStandalone()
+    ? '<p>✅ Ты уже в режиме приложения.</p>'
+    : '<ol class="steps"><li>Открой адрес игры в Safari.</li><li>Нажми «Поделиться» и выбери «На экран „Домой“».</li><li>Оставь включённым «Открыть как веб-приложение» и нажми «Добавить».</li></ol>' +
+      '<p class="hint">Прогресс в Safari и в иконке на экране хранится отдельно. Чтобы перенести его, сделай копию тут и восстанови в приложении.</p>';
+  return '<div class="sec-h"><h2>Сохранение</h2></div>' +
+    '<div class="wk">' +
+      '<p>' + (working ? '✅ ' + where : '⚠️ Сохранение здесь не работает. Делай копию вручную.') + '</p>' +
+      '<p class="hint">Последняя копия: ' + last + '. Делай её раз в неделю и храни в «Файлах» или iCloud: так прогресс не пропадёт, даже если телефон очистит данные.</p>' +
+      '<div class="btn-col">' +
+        '<button class="btn" data-act="export" data-fid="export">Сохранить копию в файл</button>' +
+        '<button class="btn ghost" data-act="copy-code" data-fid="copy-code">Скопировать код копии</button>' +
+        '<button class="btn ghost" data-act="import-file" data-fid="import-file">Восстановить из файла</button>' +
+        '<button class="btn ghost" data-act="import-code" data-fid="import-code">Восстановить из кода</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sec-h"><h2>Сферы</h2></div>' +
+    '<ul class="set-list">' + SPHERES.map(s =>
+      '<li><button class="set-row" style="--c:var(' + s.v + ')" data-act="edit-sphere" data-id="' + s.id + '" data-fid="sp-' + s.id + '" aria-label="Изменить сферу: ' + sn(s) + '">' +
+      '<span class="ico" aria-hidden="true">' + si(s) + '</span><span class="nm">' + sn(s) + '</span>' + PENCIL + '</button></li>').join('') + '</ul>' +
+    '<div class="sec-h"><h2>Как поставить на iPhone</h2></div><div class="wk">' + install + '</div>' +
+    '<div class="footer"><button class="btn ghost small" data-act="reset" data-fid="reset">Сбросить прогресс</button><p class="hint">Жизнь как игра, версия 2</p></div>';
+}
+
+function render() {
+  if (!state) return;
+  const a = document.activeElement;
+  const fid = a && a.dataset ? a.dataset.fid : null;
+  const caret = a && a.id === 'note' ? a.selectionStart : null;
+  const panel = ui.tab === 'quests' ? questsHTML() : ui.tab === 'boss' ? bossHTML() : ui.tab === 'week' ? weekHTML() : moreHTML();
+  justDone = null;
+  app.innerHTML = (saved === false ? noticeHTML() : '') + nagHTML() + heroHTML() + tabsHTML() + '<div role="tabpanel">' + panel + '</div>';
+  settleBars();
+  if (fid && !sheetEl.firstChild) {
+    const el = app.querySelector('[data-fid="' + fid + '"]');
+    if (el) {
+      el.focus({ preventScroll: true });
+      if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret);
+    }
+  }
+}
+
+/* ================= эффекты ================= */
+const toastQ = [];
+let toastBusy = false;
+function toast(msg) { toastQ.push(msg); if (!toastBusy) nextToast(); }
+function nextToast() {
+  const m = toastQ.shift();
+  if (m == null) { toastBusy = false; toastEl.innerHTML = ''; return; }
+  toastBusy = true;
+  toastEl.innerHTML = '<div class="toast">' + esc(m) + '</div>';
+  setTimeout(nextToast, 2800);
+}
+function haptic() { try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) { /* не страшно */ } }
+
+function floatXP(rect, xp, cssVar) {
+  if (calm || !rect) return;
+  const f = document.createElement('div');
+  f.className = 'fx';
+  f.textContent = '+' + xp + ' XP';
+  f.style.left = (rect.left + rect.width / 2) + 'px';
+  f.style.top = rect.top + 'px';
+  f.style.setProperty('--c', 'var(' + cssVar + ')');
+  document.body.appendChild(f);
+  const an = f.animate([
+    { transform: 'translate(-50%,0) scale(.7)', opacity: 0 },
+    { transform: 'translate(-50%,-22px) scale(1.15)', opacity: 1, offset: 0.25 },
+    { transform: 'translate(-50%,-64px) scale(1)', opacity: 0 }
+  ], { duration: 950, easing: 'ease-out' });
+  an.onfinish = () => f.remove();
+}
+
+function confetti() {
+  if (calm) return;
+  const cs = getComputedStyle(document.documentElement);
+  const colors = ['--c-biz', '--c-content', '--c-body', '--c-mind', '--primary'].map(v => cs.getPropertyValue(v).trim());
+  const W = window.innerWidth;
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('i');
+    p.className = 'cf';
+    p.style.left = (W / 2) + 'px';
+    p.style.top = '110px';
+    p.style.background = colors[i % colors.length];
+    document.body.appendChild(p);
+    const dx = (Math.random() - 0.5) * W * 0.9;
+    const dy = 140 + Math.random() * 280;
+    const rot = Math.random() * 720 - 360;
+    const an = p.animate([
+      { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+      { transform: 'translate(' + dx + 'px,' + dy + 'px) rotate(' + rot + 'deg)', opacity: 0 }
+    ], { duration: 900 + Math.random() * 600, easing: 'cubic-bezier(.2,.7,.3,1)' });
+    an.onfinish = () => p.remove();
+  }
+}
+
+/* ================= действия ================= */
+function snap(sphereId, date) {
+  const done = doneOn(date);
+  return {
+    hero: heroLvl(totalXP()).lvl,
+    sph: sphLvl(sphereXP(sphereId)).lvl,
+    dmg: bossDamage(),
+    all: state.quests.length > 0 && state.quests.every(q => done.has(q.id))
+  };
+}
+
+function toggleQuest(id, rect) {
+  const q = state.quests.find(x => x.id === id);
+  if (!q) return;
+  const date = curDate();
+  const i = state.log.findIndex(e => e.date === date && e.questId === id);
+  if (i >= 0) {
+    state.log.splice(i, 1);
+    render(); persist();
+    return;
+  }
+  const before = snap(q.sphere, date);
+  state.log.push({ id: uid(), date, questId: id, sphere: q.sphere, xp: q.xp, name: q.name });
+  const after = snap(q.sphere, date);
+  const sph = S[q.sphere] || SPHERES[0];
+  floatXP(rect, q.xp, sph.v);
+  haptic();
+  justDone = id;
+
+  const hp = state.boss.hp;
+  const bossDown = before.dmg < hp && after.dmg >= hp;
+  if (!before.all && after.all) state.flags.clean = true;
+  if (bossDown) state.flags.boss = true;
+  render(); persist();
+
+  if (after.hero > before.hero) { toast('Новый уровень: ' + after.hero + '. Теперь ты ' + titleOf(after.hero) + '!'); confetti(); }
+  else if (bossDown) { toast('Босс «' + state.boss.name + '» повержен! Забирай награду.'); confetti(); }
+  else if (after.sph > before.sph) { toast(sph.icon + ' ' + sph.name + ': уровень ' + after.sph + '!'); }
+  else if (!before.all && after.all) { toast('🏆 День зачищен. Все квесты закрыты!'); confetti(); }
+  checkAch();
+}
+
+function buy(id) {
+  const r = state.rewards.find(x => x.id === id);
+  if (!r || coins() < r.cost) return;
+  state.spent += r.cost;
+  state.bought.unshift({ name: r.name, cost: r.cost, date: todayStr() });
+  state.bought = state.bought.slice(0, 20);
+  render(); persist();
+  toast('Награда твоя: ' + r.name + '. Наслаждайся!');
+  confetti();
+  checkAch();
+}
+
+/* ================= копия прогресса ================= */
+const backupText = () => JSON.stringify({ app: 'life-rpg', v: 2, exported: new Date().toISOString(), data: state });
+function markBackup() { state.lastBackup = new Date().toISOString(); render(); persist(); }
+
+async function exportBackup() {
+  const payload = backupText();
+  const name = 'life-rpg-' + todayStr() + '.json';
+  try {
+    const file = new File([payload], name, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Копия прогресса' });
+      markBackup();
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;   // человек закрыл окно «Поделиться»
+  }
+  // В режиме приложения скачивание по ссылке может увести с экрана игры, поэтому показываем код.
+  if (!isStandalone()) {
+    try {
+      const url = URL.createObjectURL(new Blob([payload], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      markBackup();
+      toast('Файл с копией скачан');
+      return;
+    } catch (e) { /* пробуем показать код */ }
+  }
+  codeSheet(payload);
+}
+
+async function copyBackup() {
+  const text = backupText();
+  try {
+    await navigator.clipboard.writeText(text);
+    markBackup();
+    toast('Код скопирован. Вставь его в заметки или отправь себе.');
+  } catch (e) { codeSheet(text); }
+}
+
+function parseBackup(text) {
+  let o;
+  try { o = JSON.parse(String(text).trim()); } catch (e) { return null; }
+  if (o && o.app === 'life-rpg' && o.data) o = o.data;
+  if (!o || !Array.isArray(o.quests) || !Array.isArray(o.log)) return null;
+  return o;
+}
+
+function importPrompt(text) {
+  const o = parseBackup(text);
+  if (!o) { toast('Это не похоже на копию игры'); return; }
+  const s = normalize(o);
+  const xp = s.log.reduce((a, e) => a + e.xp, 0);
+  openSheet(sheetHTML('Восстановить прогресс?',
+    '<p class="hint big" style="margin-top:12px">В копии: уровень ' + heroLvl(xp).lvl + ', ' + xp + ' XP, квестов: ' + s.quests.length + '. Текущий прогресс на этом устройстве будет заменён.</p>',
+    '<button class="btn ghost" data-act="close">Отмена</button><button class="btn danger" data-act="s-save">Заменить</button>'), {
+    save() {
+      state = s; applySpheres();
+      ui.filter = null; ui.edit = false; ui.day = 0;
+      Object.keys(prevBar).forEach(k => { delete prevBar[k]; });
+      closeSheet(); render(); persist();
+      toast('Прогресс восстановлен');
+    }
+  });
+}
+
+/* ================= окна ================= */
+let cur = {};
+let openerFid = null;
+const val = sel => sheetEl.querySelector(sel).value;
+const err = msg => { const e = document.getElementById('f-err'); if (e) e.textContent = msg; };
+
+function sheetHTML(title, body, actions) {
+  return '<div class="sheet-head"><h3 id="sheet-title">' + title + '</h3><button class="icon-btn" data-act="close" aria-label="Закрыть">' + CLOSE + '</button></div>' +
+    body + '<p class="err" id="f-err" role="alert"></p><div class="actions">' + actions + '</div>';
+}
+function openSheet(html, handlers) {
+  const a = document.activeElement;
+  openerFid = a && a.dataset ? a.dataset.fid || null : null;
+  cur = handlers || {};
+  sheetEl.innerHTML = '<div class="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">' + html + '</div></div>';
+  const f = sheetEl.querySelector('input,textarea') || sheetEl.querySelector('.sheet button');
+  if (f) f.focus({ preventScroll: true });
+}
+function closeSheet() {
+  sheetEl.innerHTML = '';
+  cur = {};
+  if (openerFid) {
+    const el = app.querySelector('[data-fid="' + openerFid + '"]');
+    if (el) el.focus({ preventScroll: true });
+  }
+}
+function field(id, label, inner, hint) {
+  return '<div class="field"><label for="' + id + '">' + label + '</label>' + inner + (hint ? '<span class="hint">' + hint + '</span>' : '') + '</div>';
+}
+
+function questSheet(id) {
+  const q = id ? state.quests.find(x => x.id === id) : null;
+  if (id && !q) return;
+  let sphere = q ? q.sphere : (ui.filter || 'biz');
+  let xp = q ? q.xp : 20;
+  const body =
+    field('f-name', 'Что нужно сделать', '<input id="f-name" type="text" maxlength="60" autocomplete="off" placeholder="Например: 20 отжиманий" value="' + esc(q ? q.name : '') + '">') +
+    '<div class="field"><span class="lbl">Сфера</span><div class="chips">' +
+      SPHERES.map(s => '<button type="button" class="chip sph" style="--c:var(' + s.v + ')" data-act="chip" data-g="sphere" data-v="' + s.id + '" aria-pressed="' + (s.id === sphere) + '">' + si(s) + ' ' + sn(s) + '</button>').join('') +
+    '</div></div>' +
+    '<div class="field"><span class="lbl">Награда в XP</span><div class="chips">' +
+      [10, 20, 30, 50].map(n => '<button type="button" class="chip" data-act="chip" data-g="xp" data-v="' + n + '" aria-pressed="' + (n === xp) + '">+' + n + '</button>').join('') +
+    '</div><span class="hint">Мелочь 10, обычное дело 20, сложное 30, важное 50.</span></div>';
+  openSheet(sheetHTML(q ? 'Изменить квест' : 'Новый квест', body,
+    (q ? '<button class="btn danger" data-act="s-del">Удалить</button>' : '') + '<button class="btn" data-act="s-save">Сохранить</button>'), {
+    chip(g, v) { if (g === 'sphere') sphere = v; else xp = Number(v); },
+    save() {
+      const name = val('#f-name').trim();
+      if (!name) return err('Напиши, что нужно сделать.');
+      if (q) { q.name = name; q.sphere = sphere; q.xp = xp; }
+      else state.quests.push({ id: uid(), sphere, name, xp });
+      closeSheet(); render(); persist();
+    },
+    del() {
+      state.quests = state.quests.filter(x => x.id !== q.id);
+      closeSheet(); render(); persist();
+    }
+  });
+}
+
+function bossSheet() {
+  const b = state.boss;
+  const dead = b.hp - bossDamage() <= 0;
+  const body =
+    field('f-name', 'Как зовут босса', '<input id="f-name" type="text" maxlength="40" autocomplete="off" placeholder="Например: Лень" value="' + esc(b.name) + '">') +
+    field('f-hp', 'Сколько XP нужно набрать', '<input id="f-hp" type="number" inputmode="numeric" min="100" max="100000" step="100" value="' + b.hp + '">', 'На месяц хватит 2000 до 3000 XP.') +
+    field('f-reward', 'Награда за победу (необязательно)', '<input id="f-reward" type="text" maxlength="60" autocomplete="off" placeholder="Например: поездка на выходные" value="' + esc(b.reward || '') + '">');
+  openSheet(sheetHTML(dead ? 'Новый босс' : 'Изменить босса', body, '<button class="btn" data-act="s-save">' + (dead ? 'Начать бой' : 'Сохранить') + '</button>'), {
+    save() {
+      const name = val('#f-name').trim();
+      const hp = Math.round(Number(val('#f-hp')));
+      if (!name) return err('Назови босса, например «Лень» или «Хаос в делах».');
+      if (!(hp >= 100 && hp <= 100000)) return err('HP босса: число от 100 до 100000.');
+      state.boss.name = name; state.boss.hp = hp; state.boss.reward = val('#f-reward').trim();
+      if (dead) state.boss.startXP = totalXP();
+      closeSheet(); render(); persist();
+    }
+  });
+}
+
+function rewardSheet(id) {
+  const r = id ? state.rewards.find(x => x.id === id) : null;
+  if (id && !r) return;
+  const body =
+    field('f-name', 'Чем будешь баловать себя', '<input id="f-name" type="text" maxlength="60" autocomplete="off" placeholder="Например: поход в кафе" value="' + esc(r ? r.name : '') + '">') +
+    field('f-cost', 'Цена в монетах', '<input id="f-cost" type="number" inputmode="numeric" min="10" max="100000" step="10" value="' + (r ? r.cost : 300) + '">', '1 XP даёт 1 монету. Мелочь стоит 100 до 300, большая награда 1000 и выше.');
+  openSheet(sheetHTML(r ? 'Изменить награду' : 'Новая награда', body,
+    (r ? '<button class="btn danger" data-act="s-del">Удалить</button>' : '') + '<button class="btn" data-act="s-save">Сохранить</button>'), {
+    save() {
+      const name = val('#f-name').trim();
+      const cost = Math.round(Number(val('#f-cost')));
+      if (!name) return err('Напиши, что это за награда.');
+      if (!(cost >= 10 && cost <= 100000)) return err('Цена: число от 10 до 100000.');
+      if (r) { r.name = name; r.cost = cost; }
+      else state.rewards.push({ id: uid(), name, cost });
+      closeSheet(); render(); persist();
+    },
+    del() {
+      state.rewards = state.rewards.filter(x => x.id !== r.id);
+      closeSheet(); render(); persist();
+    }
+  });
+}
+
+function sphereSheet(id) {
+  const s = S[id];
+  if (!s) return;
+  const ICONS = ['💼', '💰', '🎬', '📱', '💪', '🏃', '🧠', '📚', '❤️', '🎯', '🌱', '🎨'];
+  const body =
+    field('f-name', 'Название', '<input id="f-name" type="text" maxlength="14" autocomplete="off" value="' + esc(s.name) + '">') +
+    field('f-icon', 'Значок (эмодзи)', '<input id="f-icon" type="text" maxlength="8" autocomplete="off" value="' + esc(s.icon) + '">') +
+    '<div class="chips emo" style="margin-top:12px">' + ICONS.map(e => '<button type="button" class="chip" data-act="chip" data-g="icon" data-v="' + e + '" aria-pressed="false">' + e + '</button>').join('') + '</div>';
+  openSheet(sheetHTML('Сфера жизни', body, '<button class="btn ghost" data-act="s-del">Как было</button><button class="btn" data-act="s-save">Сохранить</button>'), {
+    chip(g, v) { sheetEl.querySelector('#f-icon').value = v; },
+    save() {
+      const name = val('#f-name').trim();
+      const icon = val('#f-icon').trim();
+      if (!name) return err('Напиши название сферы.');
+      state.spheres[id] = { name, icon: icon || SDEF[id].icon };
+      applySpheres(); closeSheet(); render(); persist();
+    },
+    del() {
+      delete state.spheres[id];
+      applySpheres(); closeSheet(); render(); persist();
+    }
+  });
+}
+
+function nameSheet() {
+  const body = field('f-name', 'Имя героя', '<input id="f-name" type="text" maxlength="20" autocomplete="off" value="' + esc(state.name) + '">');
+  openSheet(sheetHTML('Имя героя', body, '<button class="btn" data-act="s-save">Сохранить</button>'), {
+    save() {
+      state.name = val('#f-name').trim() || 'Герой';
+      closeSheet(); render(); persist();
+    }
+  });
+}
+
+function codeSheet(text) {
+  openSheet(sheetHTML('Код копии',
+    '<div class="field"><label for="f-code">Выдели весь текст, скопируй и сохрани, например, в заметки</label><textarea id="f-code" readonly rows="6">' + esc(text) + '</textarea></div>',
+    '<button class="btn" data-act="s-save">Выделить и скопировать</button>'), {
+    save() {
+      const t = sheetEl.querySelector('#f-code');
+      t.focus(); t.select(); if (t.setSelectionRange) t.setSelectionRange(0, t.value.length);
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      if (ok) { closeSheet(); markBackup(); toast('Скопировано'); }
+      else err('Нажми на текст и удерживай, затем выбери «Скопировать».');
+    }
+  });
+}
+
+function importCodeSheet() {
+  openSheet(sheetHTML('Восстановить из кода',
+    '<div class="field"><label for="f-code">Вставь сюда код копии</label><textarea id="f-code" rows="6" placeholder="Длинный текст, который начинается с {"></textarea></div>',
+    '<button class="btn" data-act="s-save">Проверить</button>'), {
+    save() {
+      const text = val('#f-code');
+      if (!parseBackup(text)) return err('Не похоже на код копии. Скопируй его целиком, от первой до последней буквы.');
+      closeSheet();
+      importPrompt(text);
+    }
+  });
+}
+
+function resetSheet() {
+  openSheet(sheetHTML('Сбросить прогресс?',
+    '<p class="hint big" style="margin-top:12px">Прогресс, квесты и награды удалятся, игра начнётся заново. Отменить это нельзя. Если сомневаешься, сначала сделай копию.</p>',
+    '<button class="btn ghost" data-act="close">Отмена</button><button class="btn danger" data-act="s-save">Сбросить всё</button>'), {
+    save() {
+      state = fresh(); applySpheres();
+      ui.tab = 'quests'; ui.filter = null; ui.edit = false; ui.day = 0;
+      Object.keys(prevBar).forEach(k => { delete prevBar[k]; });
+      closeSheet(); render(); persist();
+    }
+  });
+}
+
+/* ================= события ================= */
+app.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || !state) return;
+  const act = el.dataset.act, id = el.dataset.id;
+  switch (act) {
+    case 'tab': ui.tab = id; render(); break;
+    case 'day': ui.day = id === '1' ? 1 : 0; render(); break;
+    case 'filter': ui.filter = ui.filter === id ? null : id; render(); break;
+    case 'toggle': { const box = el.querySelector('.box'); toggleQuest(id, box ? box.getBoundingClientRect() : null); break; }
+    case 'toggle-edit': ui.edit = !ui.edit; render(); break;
+    case 'add-quest': questSheet(null); break;
+    case 'edit-quest': questSheet(id); break;
+    case 'edit-boss': bossSheet(); break;
+    case 'add-reward': rewardSheet(null); break;
+    case 'edit-reward': rewardSheet(id); break;
+    case 'edit-sphere': sphereSheet(id); break;
+    case 'buy': buy(id); break;
+    case 'hero-name': nameSheet(); break;
+    case 'export': exportBackup(); break;
+    case 'copy-code': copyBackup(); break;
+    case 'import-file': fileIn.value = ''; fileIn.click(); break;
+    case 'import-code': importCodeSheet(); break;
+    case 'reset': resetSheet(); break;
+  }
+});
+
+app.addEventListener('input', e => {
+  if (e.target && e.target.id === 'note') { state.note = e.target.value; persist(); }
+});
+
+fileIn.addEventListener('change', async () => {
+  const f = fileIn.files && fileIn.files[0];
+  if (!f) return;
+  try { importPrompt(await f.text()); } catch (e) { toast('Не получилось прочитать файл'); }
+});
+
+sheetEl.addEventListener('click', e => {
+  if (e.target.classList && e.target.classList.contains('scrim')) { closeSheet(); return; }
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const a = el.dataset.act;
+  if (a === 'close') closeSheet();
+  else if (a === 's-save') { if (cur.save) cur.save(); }
+  else if (a === 's-del') { if (cur.del) cur.del(); }
+  else if (a === 'chip') {
+    if (cur.chip) cur.chip(el.dataset.g, el.dataset.v);
+    el.parentElement.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === el)));
+  }
+});
+
+sheetEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); if (cur.save) cur.save(); }
+});
+
+document.addEventListener('keydown', e => {
+  if (!sheetEl.firstChild) return;
+  if (e.key === 'Escape') { closeSheet(); return; }
+  if (e.key === 'Tab') {
+    const f = Array.prototype.slice.call(sheetEl.querySelectorAll('button,input,textarea')).filter(x => !x.disabled);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
+
+function checkDay() {
+  const t = todayStr();
+  if (t !== lastDay) { lastDay = t; render(); }
+}
+setInterval(checkDay, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (saveTimer) { clearTimeout(saveTimer); doSave(); } }
+  else checkDay();
+});
+
+/* ================= запуск ================= */
+async function init() {
+  const text = await Store.load();
+  let loaded = null;
+  if (text) {
+    try {
+      const o = JSON.parse(text);
+      if (o && Array.isArray(o.quests) && Array.isArray(o.log)) loaded = o;
+    } catch (e) { /* битое сохранение: начинаем заново */ }
+  }
+  if (Store.mode === 'memory') saved = false;
+  state = loaded ? normalize(loaded) : fresh();
+  applySpheres();
+  checkAch(true);
+  render();
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* не страшно */ }
+}
+init();
+
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+})();
+</script>
+</body>
+</html>
